@@ -1,6 +1,8 @@
 module.exports.UserRoutes = require('./Users')
 module.exports.CustomerRoutes = require('./Customers')
 module.exports.ProductRoutes = require('./Products')
+module.exports.RecipeRoutes = require('./Recipe')
+module.exports.RecipeMaterialsRoutes = require('./RecipeMaterial')
 module.exports.SetRoutes = require('./Sets')
 module.exports.OrderRoutes = require('./Orders')
 module.exports.StockRoutes = require('./Stocks')

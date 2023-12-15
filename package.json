@@ -8,6 +8,7 @@
     "main": "server.js",
     "scripts": {
         "start": "node src/v1/app.js",
+        "dev": "nodemon src/v1/app.js",
         "previusVersion": "node server.js",
         "v1": "node src/v1/app.js",
         "v1-watch": "node --watch src/v1/app.js"
@@ -23,6 +24,7 @@
         "joi": "^17.10.2",
         "jsonwebtoken": "^9.0.2",
         "nodemailer": "^6.9.5",
+        "nodemon": "^3.0.2",
         "pg": "^8.11.3",
         "request": "^2.88.2",
         "sequelize": "^6.33.0",

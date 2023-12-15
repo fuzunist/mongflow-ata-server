@@ -5,7 +5,7 @@ global.socketio = null
 const connectSocket = (server) => {
     socketio = new Server(server, {
         cors: {
-            origin: [process.env.CLIENT_ENDPOINT, process.env.CLIENT_ENDPOINT_2, process.env.CLIENT_ENDPOINT_3]
+            origin:[process.env.CLIENT_ENDPOINT, process.env.CLIENT_ENDPOINT_2, process.env.CLIENT_ENDPOINT_3]
         }
     })
     console.log('Socket Connection is successful...')
