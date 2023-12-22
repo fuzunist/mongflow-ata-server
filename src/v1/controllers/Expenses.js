@@ -73,8 +73,11 @@ const createExpense = async (req, res) => {
 };
 
 const updateExpense = async (req, res) => {
-  _updateExpense({ ...req.body})
-    .then(({ rows }) => res.status(httpStatus.OK).send(rows[0]))
+  _updateExpense(req.body)
+    .then(({ rows }) => {
+       console.log("rows", rows)
+      return res.status(httpStatus.OK).send(rows[0])
+    })
     .catch((e) => {
       console.log(e);
       res
