@@ -37,9 +37,9 @@ const _createExpense = (data) => {
 
 const _updateExpense = (data) => {
   return process.pool.query(
-    'UPDATE "companyexpenses" SET  monthly_expenses=$1 WHERE id=$2 RETURNING *',
+    "UPDATE companyexpenses SET  monthly_expenses=$1 WHERE id=$2 RETURNING monthly_expenses ",
     [
-      // data.date,
+     //data.date
       data.monthly_expenses,
       // data.daily_expenses,
       // data.hourly_expenses,
