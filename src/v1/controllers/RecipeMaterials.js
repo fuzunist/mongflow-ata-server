@@ -16,7 +16,7 @@ const put = async (req, res) => {
   try {
     if (!req.body.length) {
       const result = await process.pool.query(
-        "SELECT id, cost FROM recipematerials"
+        "SELECT id, cost FROM recipematerialsocks"
       );
       return res.status(httpStatus.OK).send(result.rows);
     }
@@ -24,7 +24,7 @@ const put = async (req, res) => {
       if (response?.rowCount >= 1) {
         console.log("rowcount", response.rowCount >= 1);
         const result = await process.pool.query(
-          "SELECT id, cost FROM recipematerials"
+          "SELECT id, cost FROM recipematerialstocks"
         );
         return res.status(httpStatus.OK).send(result.rows);
       } else {

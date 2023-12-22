@@ -1,5 +1,5 @@
 const getAll = () => {
-  return process.pool.query("SELECT * FROM recipematerials");
+  return process.pool.query("SELECT * FROM recipematerialstocks");
 };
 
 const updateEach = async (data) => {
@@ -15,7 +15,7 @@ const updateEach = async (data) => {
     const values = transformedData.flatMap((item) => [item.id, item.cost]);
 
     const sqlQuery = `
-      UPDATE recipematerials AS r
+      UPDATE recipematerialstocks AS r
       SET cost = v.cost::int
       FROM (VALUES ${placeholders}) AS v(id, cost)
       WHERE r.id = v.id::int; -- Explicitly cast the ID field in WHERE clause
