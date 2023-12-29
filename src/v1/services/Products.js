@@ -183,7 +183,7 @@ const getOne = (client, product_id) => {
             WHERE
                 p.product_id = $1
             GROUP BY
-                p.product_id, p.product_name, pd.default_price, c.currency_id, c.currency_code
+                p.product_id, p.product_name, pd.default_price, p.product_type, c.currency_id, c.currency_code
             ORDER BY
                 p.product_id ASC
         `,

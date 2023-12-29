@@ -11,7 +11,9 @@ const createValidation = Joi.object({
     subtotal: Joi.number().required(),
     tax_rate: Joi.number().required(),
     total_with_tax: Joi.number().required(),
-    exchange_rate: Joi.number().required()
+    exchange_rate: Joi.number().required(),
+    total_cost: Joi.number().required()
+
 })
 
 const updateValidation = Joi.object({
@@ -39,7 +41,7 @@ const editValidation = Joi.object({
 })
 
 const updateStatusValidation = Joi.object({
-    status: Joi.number().required().min(0).max(4)
+    status: Joi.number().required().min(0).max(5)
 })
 
 module.exports = {

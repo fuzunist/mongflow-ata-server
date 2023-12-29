@@ -1,6 +1,6 @@
-const _getMonthlyExpenses = (date) => {
+const _getExpenses = (date) => {
   return process.pool.query(
-    "SELECT id, monthly_expenses, TO_CHAR(date, 'MM/YYYY') AS date FROM companyexpenses WHERE date = $1",
+    "SELECT id, TO_CHAR(date, 'MM/YYYY') AS date,monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost FROM companyexpenses WHERE date = $1",
     [date]
   );
 };
@@ -37,18 +37,20 @@ const _createExpense = (data) => {
 
 const _updateExpense = (data) => {
   return process.pool.query(
-    "UPDATE companyexpenses SET  monthly_expenses=$1 WHERE id=$2 RETURNING monthly_expenses ",
+    "UPDATE companyexpenses SET monthly_expenses=$1, daily_expenses=$2, hourly_expenses=$3, monthly_cost=$4, daily_cost=$5, hourly_cost=$6  WHERE id=$7 RETURNING *",
     [
-     //data.date
       data.monthly_expenses,
-      // data.daily_expenses,
-      // data.hourly_expenses,
+      data.daily_expenses,
+      data.hourly_expenses,
+      data.monthly_cost,
+      data.daily_cost,
+      data.hourly_cost,
       data.id,
     ]
   );
 };
 module.exports = {
-  _getMonthlyExpenses,
+  _getExpenses,
   _getClasses,
   _getItems,
   _createItem,

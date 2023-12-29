@@ -13,6 +13,7 @@ const {
   CustomerRoutes,
   ProductRoutes,
   RecipeMaterialsRoutes,
+  RawMaterialsRoutes,
   RecipeRoutes,
   OrderRoutes,
   StockRoutes,
@@ -46,6 +47,7 @@ server.listen(port, () => {
   app.use("/customer", CustomerRoutes);
   app.use("/product", ProductRoutes);
   app.use("/recipe", RecipeRoutes);
+  app.use("/recipe/rawmaterials", RawMaterialsRoutes);
   app.use("/recipe/materials", RecipeMaterialsRoutes);
   app.use("/set", SetRoutes);
   app.use("/order", OrderRoutes);

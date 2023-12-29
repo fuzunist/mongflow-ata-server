@@ -5,23 +5,14 @@ const {
   getAllLogs,
   updateEachLog,
   insertLog,
-  checkExistingMaterial,
-} = require("../services/RecipeMaterials");
+} = require("../services/RawMaterials");
 const httpStatus = require("http-status/lib");
 
 const create = async (req, res) => {
-  const { material } = req.body;
-
-  const existingMaterial = await checkExistingMaterial(material);
-
-  if (existingMaterial) {
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .send({ error: "Girdiğiniz hammadde zaten mevcut!" });
-  }
+  const { material, cost, preprocesscost, stock } = req.body;
 
   try {
-    insert({ material })
+    insert({ material, cost, preprocesscost, stock })
       .then(({ rows }) => res.status(httpStatus.CREATED).send(rows[0]))
       .catch((e) => {
         console.log(e);
@@ -45,24 +36,22 @@ const get = (req, res) => {
 };
 
 const put = async (req, res) => {
-  console.log(req.body);
   try {
     if (!req.body) {
       return res
-        .status(httpStatus.BAD_REQUEST)
-        .send({ error: "Body is empty." });
+      .status(httpStatus.BAD_REQUEST)
+      .send({ error: "Body is empty." });
     }
-    const id = req.params.id;
-    console.log(id);
-    updateEach(parseInt(id), req.body)
-      .then(({ rows }) => {
-        console.log("contr 45line", rows[0]);
-        return res.status(httpStatus.ACCEPTED).send(rows[0]);
-      })
-      .catch((e) => {
-        console.log(e);
-        res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e });
-      });
+    const id= req.params.id;
+     console.log(id)
+    updateEach(parseInt(id), req.body).then(({ rows }) => {
+
+     return res.status(httpStatus.ACCEPTED).send(rows[0])
+   })
+   .catch((e) => {
+     console.log(e);
+     res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e });
+   });
   } catch (err) {
     console.log(err);
   }
@@ -102,9 +91,7 @@ const putLog = async (req, res) => {
     console.log(req.body);
     if (!req.body) {
       console.log("no body length fo putLog");
-      const result = await process.pool.query(
-        "SELECT * FROM recipemateriallogs"
-      );
+      const result = await process.pool.query("SELECT * FROM rawmateriallogs");
       return res.status(httpStatus.OK).send(result.rows);
     }
 

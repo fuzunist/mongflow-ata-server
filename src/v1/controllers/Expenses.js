@@ -1,18 +1,17 @@
 const httpStatus = require("http-status/lib");
 
 const {
-  _getMonthlyExpenses,
+  _getExpenses,
   _getClasses,
   _getItems,
   _createItem,
   _createExpense,
   _updateExpense,
 } = require("../services/Expenses");
-const getMonthlyExpenses = async (req, res) => {
+const getExpenses = async (req, res) => {
   const date = req.query.date;
-  _getMonthlyExpenses(date)
+  _getExpenses(date)
     .then(({ rows }) => {
-      console.log("rows of monthly expenses", rows);
       if (rows.length === 0) {
         return res
           .status(httpStatus.NO_CONTENT)
@@ -75,8 +74,8 @@ const createExpense = async (req, res) => {
 const updateExpense = async (req, res) => {
   _updateExpense(req.body)
     .then(({ rows }) => {
-       console.log("rows", rows)
-      return res.status(httpStatus.OK).send(rows[0])
+      console.log("rows", rows);
+      return res.status(httpStatus.OK).send(rows[0]);
     })
     .catch((e) => {
       console.log(e);
@@ -88,7 +87,7 @@ const updateExpense = async (req, res) => {
 
 module.exports = {
   getClasses,
-  getMonthlyExpenses,
+  getExpenses,
   getItems,
   createItem,
   createExpense,

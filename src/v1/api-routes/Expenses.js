@@ -2,7 +2,7 @@ const paramValidate = require("../middlewares/paramValidate");
 const authenticate = require("../middlewares/authenticate");
 
 const {
-  getMonthlyExpenses,
+  getExpenses,
   getItems,
   getClasses,
   createExpense,
@@ -13,9 +13,7 @@ const {
 const express = require("express");
 const router = express.Router();
 
-router
-  .route("/")
-  .get(authenticate, getMonthlyExpenses);
+router.route("/").get(authenticate, getExpenses);
 router.route("/class").get(authenticate, getClasses);
 router.route("/items").get(authenticate, getItems);
 

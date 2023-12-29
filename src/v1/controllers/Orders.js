@@ -80,10 +80,10 @@ const create = async (req, res) => {
       currency_id,
       ...req.body,
       status:
-        usertype === "admin" || usertype === "stock_manager"
-          ? 0
-          : usertype === "boss"
+        usertype === "admin" || usertype === "boss" || usertype === "stock_manager"
           ? 1
+          : usertype === "production_manager"
+          ? 4
           : usertype.includes("domestic")
           ? 2
           : 3,

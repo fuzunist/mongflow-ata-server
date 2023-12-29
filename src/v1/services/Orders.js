@@ -1,6 +1,6 @@
 const insert = (client, data) => {
   return client.query(
-    `INSERT INTO orders (userid, customer_id, currency_id, order_status, order_date, order_number, subtotal, tax_rate, total_with_tax, products, sets, status, approver_id, exchange_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+    `INSERT INTO orders (userid, customer_id, currency_id, order_status, order_date, order_number, subtotal, tax_rate, total_with_tax, products, sets, status, approver_id, exchange_rate, total_cost) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
     [
       data.userid,
       data.customer_id,
@@ -16,6 +16,7 @@ const insert = (client, data) => {
       data.status,
       data.approver_id,
       data.exchange_rate,
+      data.total_cost
     ]
   );
 };
