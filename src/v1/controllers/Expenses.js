@@ -7,6 +7,7 @@ const {
   _createItem,
   _createExpense,
   _updateExpense,
+  checkExistingItem,
 } = require("../services/Expenses");
 const getExpenses = async (req, res) => {
   const date = req.query.date;
@@ -50,6 +51,12 @@ const getItems = async (req, res) => {
 };
 
 const createItem = async (req, res) => {
+  const existingItem = await checkExistingItem(req.body.name);
+  if (existingItem) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .send({ error: "errorexistingitem" });
+  }
   _createItem({ ...req.body })
     .then(({ rows }) => res.status(httpStatus.OK).send(rows[0]))
     .catch((e) => {

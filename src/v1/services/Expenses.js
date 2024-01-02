@@ -1,6 +1,6 @@
 const _getExpenses = (date) => {
   return process.pool.query(
-    "SELECT id, TO_CHAR(date, 'MM/YYYY') AS date,monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost FROM companyexpenses WHERE date = $1",
+    "SELECT id, TO_CHAR(date, 'MM/YYYY') AS date,monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost FROM companyexpenses WHERE date=$1",
     [date]
   );
 };
@@ -17,9 +17,16 @@ const _getItems = () => {
 
 const _createItem = (data) => {
   return process.pool.query(
-    'INSERT INTO "companyexpensesitems" (class, name, frequency) VALUES ($1, $2, $3) RETURNING id',
-    [data.class, data.name, data.frequency]
+    'INSERT INTO "companyexpensesitems" (class_id, name, frequency) VALUES ($1, $2, $3) RETURNING *',
+    [data.class_id, data.name, data.frequency]
   );
+};
+
+const checkExistingItem = async (name) => {
+  const query = 'SELECT * FROM companyexpensesitems WHERE name = $1';
+  const result = await process.pool.query(query, [name]);
+
+  return result.rows.length > 0;
 };
 
 // BURASI EXTRA CRON JOB İLE HER AY TETİKLENECEK
@@ -56,4 +63,5 @@ module.exports = {
   _createItem,
   _createExpense,
   _updateExpense,
+  checkExistingItem
 };
