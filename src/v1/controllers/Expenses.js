@@ -8,6 +8,7 @@ const {
   _createExpense,
   _updateExpense,
   checkExistingItem,
+  _updateExpenseItemFrequency,
 } = require("../services/Expenses");
 const getExpenses = async (req, res) => {
   const date = req.query.date;
@@ -81,7 +82,19 @@ const createExpense = async (req, res) => {
 const updateExpense = async (req, res) => {
   _updateExpense(req.body)
     .then(({ rows }) => {
-      console.log("rows", rows);
+      return res.status(httpStatus.OK).send(rows[0]);
+    })
+    .catch((e) => {
+      console.log(e);
+      res
+        .status(httpStatus.INTERNAL_SERVER_ERROR)
+        .send({ error: "An error occurred." });
+    });
+};
+
+const updateExpenseItemFrequency = async (req, res) => {
+  _updateExpenseItemFrequency(req.body)
+    .then(({ rows }) => {
       return res.status(httpStatus.OK).send(rows[0]);
     })
     .catch((e) => {
@@ -99,4 +112,5 @@ module.exports = {
   createItem,
   createExpense,
   updateExpense,
+  updateExpenseItemFrequency,
 };

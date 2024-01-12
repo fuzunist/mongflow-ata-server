@@ -41,7 +41,7 @@ const editValidation = Joi.object({
 })
 
 const updateStatusValidation = Joi.object({
-    status: Joi.number().required().min(0).max(5)
+    status: Joi.string().required()
 })
 
 module.exports = {

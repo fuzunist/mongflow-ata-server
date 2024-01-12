@@ -1,6 +1,6 @@
 const insert = (data, client) => {
-    const query = `INSERT INTO productions (product_id, date, production, constituent, last_edited_by, attributes) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`
-    const values = [data.product_id, data.date, data.production, data.userid, data.userid, data.attributes]
+    const query = `INSERT INTO productions (product_id, date, constituent, last_edited_by, attributes) VALUES ($1, $2, $3, $4, $5) RETURNING *`
+    const values = [data.product_id, data.date, data.userid, data.userid, data.attributes]
 
     if (client) return client.query(query, values)
     return process.pool.query(query, values)

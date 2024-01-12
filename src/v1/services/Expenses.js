@@ -23,7 +23,7 @@ const _createItem = (data) => {
 };
 
 const checkExistingItem = async (name) => {
-  const query = 'SELECT * FROM companyexpensesitems WHERE name = $1';
+  const query = "SELECT * FROM companyexpensesitems WHERE name = $1";
   const result = await process.pool.query(query, [name]);
 
   return result.rows.length > 0;
@@ -56,6 +56,13 @@ const _updateExpense = (data) => {
     ]
   );
 };
+
+const _updateExpenseItemFrequency = (data) => {
+  return process.pool.query(
+    "UPDATE companyexpensesitems SET frequency=$1 WHERE id=$2 RETURNING *",
+    [data.frequency, data.id]
+  );
+};
 module.exports = {
   _getExpenses,
   _getClasses,
@@ -63,5 +70,6 @@ module.exports = {
   _createItem,
   _createExpense,
   _updateExpense,
-  checkExistingItem
+  checkExistingItem,
+  _updateExpenseItemFrequency,
 };

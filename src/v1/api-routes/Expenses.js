@@ -8,6 +8,7 @@ const {
   createExpense,
   createItem,
   updateExpense,
+  updateExpenseItemFrequency,
 } = require("../controllers/Expenses");
 
 const express = require("express");
@@ -20,5 +21,7 @@ router.route("/items").get(authenticate, getItems);
 router.route("/").post(authenticate, createExpense);
 router.route("/item").post(authenticate, createItem);
 router.route("/").patch(authenticate, updateExpense);
+router.route("/item").patch(authenticate, updateExpenseItemFrequency);
+
 
 module.exports = router;

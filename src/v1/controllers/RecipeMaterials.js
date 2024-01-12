@@ -6,6 +6,7 @@ const {
   updateEachLog,
   insertLog,
   checkExistingMaterial,
+  updateEachStock,
 } = require("../services/RecipeMaterials");
 const httpStatus = require("http-status/lib");
 
@@ -32,6 +33,20 @@ const create = async (req, res) => {
     res
       .status(httpStatus.INTERNAL_SERVER_ERROR)
       .send({ error: "An error occurred." });
+  }
+};
+
+const updateStocks = async (req, res) => {
+  const order_id = req.params.id;
+
+  try {
+    const result = await updateEachStock(order_id);
+    res.status(httpStatus.ACCEPTED).send(result.rows);
+  } catch (err) {
+     console.log(err)
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .send({ error: err.message });
   }
 };
 
@@ -69,10 +84,11 @@ const put = async (req, res) => {
 };
 
 const createLog = async (req, res) => {
-  const { item_id, date, price, quantity, last_edited_by } = req.body;
+  // const { item_id, date, price, quantity, last_edited_by, supplier, waybill } =
+  //   req.body;
 
   try {
-    insertLog({ item_id, date, price, quantity, last_edited_by })
+    insertLog(req.body)
       .then(({ rows }) => res.status(httpStatus.CREATED).send(rows[0]))
       .catch((e) => {
         console.log(e);
@@ -123,4 +139,4 @@ const putLog = async (req, res) => {
     console.log(err);
   }
 };
-module.exports = { get, put, create, getLogs, putLog, createLog };
+module.exports = { get, put, updateStocks, create, getLogs, putLog, createLog };

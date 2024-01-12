@@ -1,11 +1,19 @@
 const httpStatus = require("http-status/lib");
-const { insert, getAll, del, update, getOne } = require("../services/Recipes");
+const {
+  insert,
+  getAll,
+  del,
+  update,
+  getOne,
+  insertSpecialRecipe,
+  getAllSpecialRecipes,
+  delSpecialRecipe,
+} = require("../services/Recipes");
 
 const create = async (req, res) => {
-  const { order_id, details, cost, recipe_id } = req.body;
-  console.log(order_id, details, cost,recipe_id);
+  console.log("recipe to create:", req.body);
   try {
-    insert({ order_id, details, cost, recipe_id })
+    insert(req.body)
       .then(({ rows }) => res.status(httpStatus.CREATED).send(rows[0]))
       .catch((e) => {
         console.log(e);
@@ -28,10 +36,10 @@ const get = (req, res) => {
 };
 
 const put = async (req, res) => {
-  const id=req.params?.id;
-  const { details, cost} = req.body;
+  const id = req.params?.id;
+
   try {
-    update({  details, cost, id })
+    update({ ...req.body, id })
       .then(({ rows }) => res.status(httpStatus.OK).send(rows[0]))
       .catch((e) => {
         console.log(e);
@@ -47,9 +55,53 @@ const put = async (req, res) => {
 
 const remove = async (req, res) => {};
 
+const createSpecialRecipe = async (req, res) => {
+  try {
+    insertSpecialRecipe(req.body)
+      .then(({ rows }) => res.status(httpStatus.CREATED).send(rows[0]))
+      .catch((e) => {
+        console.log(e);
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e });
+      });
+  } catch (e) {
+    console.log(e);
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .send({ error: "An error occurred." });
+  }
+};
+
+const getSpecialRecipes = (req, res) => {
+  getAllSpecialRecipes()
+    .then(({ rows }) => res.status(httpStatus.OK).send(rows))
+    .catch((e) =>
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e })
+    );
+};
+
+const removeSpecialRecipe = async (req, res) => {
+  const id = req.params.id;
+  delSpecialRecipe(id)
+    .then(({ rowCount }) => {
+      if (!rowCount)
+        return res
+          .status(httpStatus.NOT_FOUND)
+          .send({ message: "There is no such record." });
+      res.status(httpStatus.OK).send({ message: "User deleted successfully." });
+    })
+    .catch(() =>
+      res
+        .status(httpStatus.INTERNAL_SERVER_ERROR)
+        .send({ error: "An error occurred." })
+    );
+};
+
 module.exports = {
   create,
   get,
   put,
   remove,
+  getSpecialRecipes,
+  createSpecialRecipe,
+  removeSpecialRecipe,
 };

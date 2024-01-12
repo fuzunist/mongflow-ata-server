@@ -31,7 +31,6 @@ const { delAllOfOrder } = require("../services/Recipes");
 const updateSome = async (req, res) => {
   try {
     const body = req.body;
-    console.log(body);
     if (!body) {
       return res
         .status(httpStatus.BAD_REQUEST)
@@ -39,11 +38,10 @@ const updateSome = async (req, res) => {
     }
 
     const order_id = req.params.id;
-    console.log(order_id);
+    console.log("order id:", order_id);
     await patchSome(parseInt(order_id), body)
       .then(({ rows }) => {
-         console.log("contr 45line",rows[0])
-        return res.status(httpStatus.ACCEPTED).send(rows[0])
+        return res.status(httpStatus.ACCEPTED).send(rows[0]);
       })
       .catch((e) => {
         console.log(e);
@@ -79,16 +77,28 @@ const create = async (req, res) => {
       userid: userid,
       currency_id,
       ...req.body,
-      status:
-        usertype === "admin" || usertype === "boss" || usertype === "stock_manager"
-          ? 1
+      status: // type string
+        usertype === "admin"
+          ? "11"
+          : usertype === "boss"
+          ? "22"
+          : usertype === "stock_manager"
+          ? "33"
           : usertype === "production_manager"
-          ? 4
-          : usertype.includes("domestic")
-          ? 2
-          : 3,
+          ? "44"
+          : usertype === "domestic_market_manager"
+          ? "55"
+          : usertype === "domestic_market_marketing"
+          ? "66"
+          : usertype === "foreign_market_manager"
+          ? "77"
+          : usertype === "foreign_market_marketing" ?? "88",
       approver_id:
-        usertype === "admin" || usertype === "stock_manager" ? userid : null,
+        usertype === "admin" ||
+        usertype === "stock_manager" ||
+        usertype === "boss"
+          ? userid
+          : null,
     });
 
     const { rows: customerRows } = await getCustomer(req.body.customer_id);
@@ -219,11 +229,11 @@ const put = async (req, res) => {
       "attributes in the put function before send it to getLast function",
       req.body.product_attributes
     );
-    const { rows: lastStock } = await getLast(
-      req.body.product_attributes,
-      client
-    );
-    if (lastStock.length === 0) throw "No stock found for the product";
+    // const { rows: lastStock } = await getLast(
+    //   req.body.product_attributes,
+    //   client
+    // );
+    // if (lastStock.length === 0) throw "No stock found for the product";
 
     const { rows, rowCount } = await updateOrderStatus(
       { order_id: req.params.id, ...req.body },
@@ -231,32 +241,32 @@ const put = async (req, res) => {
     );
     if (!rowCount) throw "No order found with the provided order ID";
 
-    const newStock = lastStock[0].stock - req.body.stock_diff;
-    if (newStock < 0) throw "There is not enough stock for the product";
-    await updateStock(
-      {
-        userid: req.user.userid,
-        stock: newStock,
-        stock_id: lastStock[0].stock_id,
-      },
-      client
-    );
+    // const newStock = lastStock[0].stock - req.body.stock_diff;
+    // if (newStock < 0) throw "There is not enough stock for the product";
+    // await updateStock(
+    //   {
+    //     userid: req.user.userid,
+    //     stock: newStock,
+    //     stock_id: lastStock[0].stock_id,
+    //   },
+    //   client
+    // );
 
     await client.query("COMMIT");
     client.release();
 
-    const stock = {
-      ...lastStock[0],
-      stock: newStock,
-      last_edited_by_username: req.user.username,
-    };
+    // const stock = {
+    //   ...lastStock[0],
+    //   stock: newStock,
+    //   last_edited_by_username: req.user.username,
+    // };
 
-    global.socketio.emit("notification", {
-      type: "stock_update",
-      stock,
-      userid: req.user.userid,
-    });
-    res.status(httpStatus.CREATED).send({ order: rows[0], stock });
+    // global.socketio.emit("notification", {
+    //   type: "stock_update",
+    //   stock,
+    //   userid: req.user.userid,
+    // });
+    res.status(httpStatus.CREATED).send({ order: rows[0], stock: null });
   } catch (e) {
     console.log(e);
     client.release();

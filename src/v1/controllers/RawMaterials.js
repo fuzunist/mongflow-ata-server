@@ -39,29 +39,27 @@ const put = async (req, res) => {
   try {
     if (!req.body) {
       return res
-      .status(httpStatus.BAD_REQUEST)
-      .send({ error: "Body is empty." });
+        .status(httpStatus.BAD_REQUEST)
+        .send({ error: "Body is empty." });
     }
-    const id= req.params.id;
-     console.log(id)
-    updateEach(parseInt(id), req.body).then(({ rows }) => {
-
-     return res.status(httpStatus.ACCEPTED).send(rows[0])
-   })
-   .catch((e) => {
-     console.log(e);
-     res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e });
-   });
+    const id = req.params.id;
+    console.log(id);
+    updateEach(parseInt(id), req.body)
+      .then(({ rows }) => {
+        return res.status(httpStatus.ACCEPTED).send(rows[0]);
+      })
+      .catch((e) => {
+        console.log(e);
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e });
+      });
   } catch (err) {
     console.log(err);
   }
 };
 
 const createLog = async (req, res) => {
-  const { item_id, date, price, quantity, last_edited_by } = req.body;
-
   try {
-    insertLog({ item_id, date, price, quantity, last_edited_by })
+    insertLog(req.body)
       .then(({ rows }) => res.status(httpStatus.CREATED).send(rows[0]))
       .catch((e) => {
         console.log(e);

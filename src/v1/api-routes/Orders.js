@@ -47,7 +47,7 @@ router
     validate(schemas.editValidation),
     patch
   );
-router.route("/patch/:id").patch(authenticate, paramValidate("id"), updateSome);
+router.route("/patch/:id").patch(authenticate, updateSome);
 
 router.route("/:id").delete(authenticate, paramValidate("id"), remove);
 router
