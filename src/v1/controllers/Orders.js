@@ -459,7 +459,7 @@ const createOrderNumber = async (req, res) => {
     await client.query("COMMIT");
     client.release();
     res.status(httpStatus.CREATED).send({
-      order_number: `${date}-MG-${orderCounter
+      order_number: `${date}-ATA-${orderCounter
         .toString()
         .padStart(3, "0")}-${suffix}`,
     });

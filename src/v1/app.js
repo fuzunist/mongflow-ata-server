@@ -37,6 +37,9 @@ app.use(
   })
 );
 
+
+// bu sql deki clone_latest_expenses_row() fonksiyonu
+// CREATE OR REPLACE FUNCTION clone_latest_expenses_row() RETURNS void AS $$BEGIN INSERT INTO expenses (saved_expenses, monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost, date) SELECT saved_expenses,monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost, NOW() AS date FROM expenses ORDER BY date DESC LIMIT 1;END; $$ LANGUAGE plpgsql;
 cron.schedule(
   "01 00 1 * *",
   () => {

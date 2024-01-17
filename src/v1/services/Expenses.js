@@ -1,6 +1,6 @@
 const _getExpenses = (date) => {
   return process.pool.query(
-    "SELECT id, TO_CHAR(date, 'MM/YYYY') AS date,monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost FROM companyexpenses WHERE date=$1",
+    "SELECT id, TO_CHAR(date, 'MM/YYYY') AS date, saved_expenses, monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost FROM companyexpenses WHERE date=$1",
     [date]
   );
 };
@@ -32,9 +32,10 @@ const checkExistingItem = async (name) => {
 // BURASI EXTRA CRON JOB İLE HER AY TETİKLENECEK
 const _createExpense = (data) => {
   return process.pool.query(
-    'INSERT INTO "companyexpenses" (date, monthly_expenses, daily_expenses, hourly_expenses) VALUES ($1, $2, $3, $4) RETURNING id',
+    'INSERT INTO "companyexpenses" (date,saved_expenses, monthly_expenses, daily_expenses, hourly_expenses) VALUES ($1, $2, $3, $4, $5) RETURNING id',
     [
       data.date,
+      data.saved_expenses,
       data.monthly_expenses,
       data.daily_expenses,
       data.hourly_expenses,
@@ -44,7 +45,7 @@ const _createExpense = (data) => {
 
 const _updateExpense = (data) => {
   return process.pool.query(
-    "UPDATE companyexpenses SET monthly_expenses=$1, daily_expenses=$2, hourly_expenses=$3, monthly_cost=$4, daily_cost=$5, hourly_cost=$6  WHERE id=$7 RETURNING *",
+    "UPDATE companyexpenses SET monthly_expenses=$1, daily_expenses=$2, hourly_expenses=$3, monthly_cost=$4, daily_cost=$5, hourly_cost=$6, saved_expenses=$7  WHERE id=$8 RETURNING *",
     [
       data.monthly_expenses,
       data.daily_expenses,
@@ -52,6 +53,7 @@ const _updateExpense = (data) => {
       data.monthly_cost,
       data.daily_cost,
       data.hourly_cost,
+      data.saved_expenses,
       data.id,
     ]
   );
