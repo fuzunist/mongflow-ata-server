@@ -1,6 +1,7 @@
 const httpStatus = require("http-status/lib");
 const {
   insert,
+  insertProductionRecipe,
   getAll,
   del,
   update,
@@ -8,6 +9,7 @@ const {
   insertSpecialRecipe,
   getAllSpecialRecipes,
   delSpecialRecipe,
+  getAllProductionRecipes
 } = require("../services/Recipes");
 
 const create = async (req, res) => {
@@ -27,8 +29,32 @@ const create = async (req, res) => {
   }
 };
 
+const createProductionRecipe = async (req, res) => {
+  console.log("production recipe to create:", req.body);
+  try {
+    insertProductionRecipe(req.body)
+      .then(({ rows }) => res.status(httpStatus.CREATED).send(rows[0]))
+      .catch((e) => {
+        console.log(e);
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e });
+      });
+  } catch (e) {
+    console.log(e);
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .send({ error: "An error occurred." });
+  }
+};
 const get = (req, res) => {
   getAll()
+    .then(({ rows }) => res.status(httpStatus.OK).send(rows))
+    .catch((e) =>
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e })
+    );
+};
+
+const getProductionRecipes = (req, res) => {
+  getAllProductionRecipes()
     .then(({ rows }) => res.status(httpStatus.OK).send(rows))
     .catch((e) =>
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: e })
@@ -104,4 +130,6 @@ module.exports = {
   getSpecialRecipes,
   createSpecialRecipe,
   removeSpecialRecipe,
+  createProductionRecipe,
+  getProductionRecipes
 };

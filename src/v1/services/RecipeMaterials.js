@@ -17,6 +17,65 @@ const getAll = () => {
     "SELECT * FROM recipematerialstocks ORDER BY id DESC "
   );
 };
+
+const updateEachStockInProduction = async (recipe_id) => {
+  const client = await process.pool.connect();
+  const query = "SELECT details FROM productionrecipes WHERE id=$1";
+  const { rows } = await process.pool.query(query, [recipe_id]);
+  console.log(rows);
+  const recipe_details = rows;
+  for (const recipe of recipe_details) {
+    await client.query("BEGIN");
+
+    try {
+      const keys = Object.keys(recipe.details);
+      for (const key of keys) {
+        const stockReduction = recipe.details[key];
+        const id = parseInt(key, 10); // Assuming the key represents an ID
+        console.log("id of material: ", id);
+        const selectQuery = {
+          text: "SELECT * FROM recipematerialstocks WHERE id = $1",
+          values: [id],
+        };
+
+        const { rows } = await client.query(selectQuery);
+
+        if (rows.length === 1) {
+          const row = rows[0];
+          const updatedStock = row.stock - stockReduction;
+
+          if (updatedStock < 0) {
+            console.error(`Negative stock for ID ${id}`);
+            await client.query("ROLLBACK");
+            throw new Error("Negative stock encountered");
+          }
+          const updateQuery = {
+            text: "UPDATE recipematerialstocks SET stock = $1 WHERE id = $2",
+            values: [updatedStock, id],
+          };
+
+          await client.query(updateQuery);
+        } else {
+          console.error(`No or multiple rows found for ID ${id}`);
+          throw new Error("Error processing details");
+        }
+      }
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error("Transaction rolled back:", error);
+      throw new Error("Error processing details");
+    }
+  }
+
+  const stocks = await process.pool.query(
+    "SELECT * FROM recipematerialstocks ORDER BY id ASC"
+  );
+
+  return stocks;
+};
+
 const updateEachStock = async (order_id) => {
   const client = await process.pool.connect();
   const query = "SELECT details FROM recipes WHERE order_id=$1";
@@ -134,4 +193,5 @@ module.exports = {
   getAllLogs,
   checkExistingMaterial,
   updateEachStock,
+  updateEachStockInProduction
 };
