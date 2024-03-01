@@ -13,6 +13,7 @@ const {
   UserRoutes,
   CustomerRoutes,
   ProductRoutes,
+  LastProductStockRoutes,
   RecipeMaterialsRoutes,
   RawMaterialsRoutes,
   RecipeRoutes,
@@ -67,17 +68,19 @@ cron.schedule(
     timezone: "Europe/Istanbul", // Set your timezone to Europe/Istanbul or 'EET'
   }
 );
+
 server.listen(port, () => {
   console.log(`The server is running on port ${port}...`);
   app.use("/user", UserRoutes);
   app.use("/customer", CustomerRoutes);
   app.use("/product", ProductRoutes);
   app.use("/recipe", RecipeRoutes);
-  app.use("/recipe/rawmaterials", RawMaterialsRoutes);
-  app.use("/recipe/materials", RecipeMaterialsRoutes);
+  app.use("/stock/rawmaterial", RawMaterialsRoutes);
+  app.use("/stock/recipematerial", RecipeMaterialsRoutes);
   app.use("/set", SetRoutes);
   app.use("/order", OrderRoutes);
   app.use("/stock", StockRoutes);
+  app.use("/stock/lastproduct", LastProductStockRoutes);
   app.use("/production", ProductionRoutes);
   app.use("/other", OtherRoutes);
   app.use("/expenses", ExpensesRoutes);
