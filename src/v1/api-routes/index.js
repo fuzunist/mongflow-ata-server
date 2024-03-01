@@ -11,3 +11,4 @@ module.exports.StockRoutes = require("./Stocks");
 module.exports.ProductionRoutes = require("./Productions");
 module.exports.OtherRoutes = require("./Others");
 module.exports.ExpensesRoutes = require("./Expenses");
+module.exports.ShipmentRoutes = require("./Shipments");

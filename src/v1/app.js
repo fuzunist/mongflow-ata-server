@@ -23,6 +23,7 @@ const {
   ProductionRoutes,
   SetRoutes,
   ExpensesRoutes,
+  ShipmentRoutes
 } = require("./api-routes");
 
 const port = process.env.APP_PORT || 4005;
@@ -84,4 +85,6 @@ server.listen(port, () => {
   app.use("/production", ProductionRoutes);
   app.use("/other", OtherRoutes);
   app.use("/expenses", ExpensesRoutes);
+  app.use("/shipment", ShipmentRoutes);
+
 });
