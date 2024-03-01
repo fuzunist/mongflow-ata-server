@@ -63,14 +63,19 @@ const getCustomerName = (customerid, client) => {
 
 const update = (data) => {
   return process.pool.query(
-    'UPDATE "customer" SET customername = $1, companyname = $2, email = $3, phone = $4, address = $5 WHERE customerid = $6 RETURNING *',
+    'UPDATE "customer" SET companyname = $1, email = $2, phone = $3, address = $4, website = $5, products = $6, contacts = $7, taxid = $8, taxoffice = $9, customer_type = $10 WHERE userid = $11 RETURNING *',
     [
-      data.customername,
       data.companyname,
       data.email,
       data.phone,
       data.address,
-      data.customerid,
+      data.website,
+      data.products,
+      data.contacts,
+      data.taxid,
+      data.taxoffice,
+      data.customer_type,
+      data.userid,
     ]
   );
 };

@@ -115,7 +115,7 @@ const create = async (req, res) => {
         attribute.values.push(value);
       }
 
-      product.attributes.push(attribute);
+      product?.attributes.push(attribute);
     }
 
     await client.query("COMMIT");
@@ -181,7 +181,7 @@ const put = async (req, res) => {
       product.product_id
     );
 
-    const deletedAttributes = oldProduct.attributes.filter((oldAttr) => {
+    const deletedAttributes = oldProduct?.attributes.filter((oldAttr) => {
       if (
         !data.attributes.find(
           (attr) => attr.attribute_id === oldAttr.attribute_id
@@ -335,7 +335,7 @@ const put = async (req, res) => {
         attribute.values.push(value);
       }
 
-      product.attributes.push(attribute);
+      product?.attributes.push(attribute);
     }
 
     await client.query("COMMIT");

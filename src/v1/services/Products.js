@@ -91,49 +91,53 @@ const update = (client, data) => {
 const getAll = () => {
     return process.pool.query(
         `
-            WITH AttributeValues AS (
-                SELECT
-                    v.product_id,
-                    a.attribute_id,
-                    a.attribute_name,
-                    jsonb_agg(jsonb_build_object(
-                        'value_id', v.value_id,
-                        'value', v.value,
-                        'extra_price', avel.extra_price
-                    ) ORDER BY v.value_id) AS values
-                FROM
-                    value AS v
-                INNER JOIN
-                    attribute AS a ON v.attribute_id = a.attribute_id
-                LEFT JOIN
-                    attributevalueextraprice AS avel ON v.value_id = avel.value_id
-                GROUP BY
-                    v.product_id, a.attribute_id, a.attribute_name
-            )
+        WITH AttributeValues AS (
             SELECT
-                p.product_id,
-                p.product_name,
-                p.product_type,
-                pd.default_price,
-                c.currency_id,
-                c.currency_code,
+                v.product_id,
+                a.attribute_id,
+                a.attribute_name,
                 jsonb_agg(jsonb_build_object(
+                    'value_id', v.value_id,
+                    'value', v.value,
+                    'extra_price', avel.extra_price
+                ) ORDER BY v.value_id) AS values
+            FROM
+                value AS v
+            INNER JOIN
+                attribute AS a ON v.attribute_id = a.attribute_id
+            LEFT JOIN
+                attributevalueextraprice AS avel ON v.value_id = avel.value_id
+            GROUP BY
+                v.product_id, a.attribute_id, a.attribute_name
+        )
+        SELECT
+            p.product_id,
+            p.product_name,
+            p.product_type,
+            pd.default_price,
+            c.currency_id,
+            c.currency_code,
+            CASE
+                WHEN COUNT(av.attribute_id) = 0 THEN NULL
+                ELSE jsonb_agg(jsonb_build_object(
                     'attribute_id', av.attribute_id,
                     'attribute_name', av.attribute_name,
                     'values', av.values
-                ) ORDER BY av.attribute_id ASC) AS attributes
-            FROM
-                product AS p
-            INNER JOIN
-                productdefaultprice AS pd ON p.product_id = pd.product_id
-            INNER JOIN
-                currency AS c ON pd.currency_id = c.currency_id
-            LEFT JOIN
-                AttributeValues AS av ON p.product_id = av.product_id
-            GROUP BY
-                p.product_id, p.product_name, p.product_type, pd.default_price, c.currency_id, c.currency_code
-            ORDER BY
-                p.product_id ASC
+                ) ORDER BY av.attribute_id ASC)
+            END AS attributes
+        FROM
+            product AS p
+        INNER JOIN
+            productdefaultprice AS pd ON p.product_id = pd.product_id
+        INNER JOIN
+            currency AS c ON pd.currency_id = c.currency_id
+        LEFT JOIN
+            AttributeValues AS av ON p.product_id = av.product_id
+        GROUP BY
+            p.product_id, p.product_name, p.product_type, pd.default_price, c.currency_id, c.currency_code
+        ORDER BY
+            p.product_id ASC;
+        
         `
     )
 }

@@ -133,10 +133,13 @@ const create = async (req, res) => {
 const get = (req, res) => {
   getAll()
     .then(({ rows }) => res.status(httpStatus.OK).send(rows))
-    .catch(() =>
-      res
+    .catch((e) =>
+
+     {
+       console.log(e)
+      return res
         .status(httpStatus.INTERNAL_SERVER_ERROR)
-        .send({ error: "An error occurred." })
+        .send({ error: e.message })}
     );
 };
 

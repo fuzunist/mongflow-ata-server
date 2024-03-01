@@ -28,7 +28,6 @@ const getAll = () => {
                 SELECT 
                     customerid, 
                     jsonb_agg(jsonb_build_object(
-                        'customername', customername, 
                         'companyname', companyname, 
                         'email', email, 
                         'phone', phone
@@ -37,7 +36,7 @@ const getAll = () => {
                 GROUP BY customerid
             ) 
             SELECT o.*, u.username, c.currency_code, cu.Customer[0], u2.username AS approver 
-            FROM "orders" o 
+            FROM "orders" o
             LEFT JOIN "User" u ON o.userid = u.userid 
             LEFT JOIN "User" u2 ON o.approver_id = u2.userid 
             LEFT JOIN "currency" c ON o.currency_id = c.currency_id 
