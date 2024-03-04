@@ -1,6 +1,6 @@
 const authenticate = require("../middlewares/authenticate");
 
-const { get, put, updateStocks, create, getLogs, createLog, putLog, updateStocksInProduction } = require("../controllers/RecipeMaterials");
+const { get, put, updateStocks, create, getLogs, createLog, putLog, updateStocksInProduction } = require("../controllers/RecipeMaterialStocks");
 
 const express = require("express");
 const router = express.Router();

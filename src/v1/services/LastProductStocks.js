@@ -118,21 +118,31 @@ const getProductStocks = () => {
   
   return process.pool.query(
     `SELECT 
-    s.id, s.product_id, s.price, s.quantity, p.product_name,
-      jsonb_object_agg(attr.attribute_name, val.value) as attributeDetails
-    FROM 
-      lastproductstocks s
-    LEFT JOIN LATERAL (
-      SELECT key::int AS attr_id, value::int AS val_id
-      FROM jsonb_each_text(s.attributes::jsonb)
-    ) AS attr_val ON true
-    LEFT JOIN attribute AS attr ON attr.attribute_id = attr_val.attr_id
-    LEFT JOIN value AS val ON val.value_id = attr_val.val_id
-    LEFT JOIN product AS p ON p.product_id = s.product_id
-    GROUP BY 
-      s.id, s.product_id, s.price, s.quantity, p.product_name
-    ORDER BY 
-      s.id ASC`
+    s.id, s.product_id, s.price, s.quantity, p.product_name, p."hasAttributes",
+    CASE
+        WHEN p."hasAttributes" = true THEN 
+            COALESCE(
+                (
+                    SELECT jsonb_object_agg(attr.attribute_name, val.value)
+                    FROM LATERAL (
+                        SELECT key::int AS attribute_id, value::int AS value_id
+                        FROM jsonb_each_text(s.attributes::jsonb)
+                    ) AS attr_val
+                    LEFT JOIN attribute AS attr ON attr.attribute_id = attr_val.attribute_id
+                    LEFT JOIN value AS val ON val.value_id = attr_val.value_id
+                ), '{}'::jsonb
+            )
+        ELSE 
+            null
+    END AS attributeDetails
+FROM 
+    rawmaterialstocks s
+LEFT JOIN product AS p ON p.product_id = s.product_id
+GROUP BY 
+    s.id, s.product_id, s.price, s.quantity, p.product_name, p."hasAttributes"
+ORDER BY 
+    s.id ASC;
+`
   );
 };
 

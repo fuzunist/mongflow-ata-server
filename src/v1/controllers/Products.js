@@ -24,8 +24,14 @@ const {
 
 const create = async (req, res) => {
   const userid = req.user.userid;
-  const { productName, defaultPrice, defaultCurrency, attributes, type } =
-    req.body;
+  const {
+    productName,
+    defaultPrice,
+    defaultCurrency,
+    attributes,
+    type,
+    hasAttributes,
+  } = req.body;
   const client = await process.pool.connect();
 
   try {
@@ -37,6 +43,7 @@ const create = async (req, res) => {
       product_name: productName,
       default_price: defaultPrice,
       currency_code: defaultCurrency,
+      hasAttributes: hasAttributes,
       attributes: [],
     };
 
@@ -58,7 +65,8 @@ const create = async (req, res) => {
       client,
       product.product_name,
       userid,
-      product.product_type
+      product.product_type,
+      product.hasAttributes
     );
     product.product_id = insertRows[0].product_id;
 
@@ -69,53 +77,57 @@ const create = async (req, res) => {
       product.default_price
     );
 
-    for (let attr of attributes) {
-      const attribute = {
-        attribute_id: null,
-        attribute_name: attr.attribute_name,
-        values: [],
-      };
-
-      const { rows: getAttributeRows, rowCount: getAttributeRowCount } =
-        await getAttribute(
-          client,
-          attribute.attribute_name,
-          product.product_id
-        );
-      if (!getAttributeRowCount) {
-        const { rows: insertAttributeRows } = await insertAttribute(
-          client,
-          attribute.attribute_name,
-          product.product_id
-        );
-        attribute.attribute_id = insertAttributeRows[0].attribute_id;
-      } else attribute.attribute_id = getAttributeRows[0].attribute_id;
-
-      for (let val of attr.values) {
-        const value = {
-          value_id: null,
-          value: val.value,
-          extra_price: val.extra_price || "0",
+    if (hasAttributes) {
+      for (let attr of attributes) {
+        const attribute = {
+          attribute_id: null,
+          attribute_name: attr.attribute_name,
+          values: [],
+          packaging: attr.packaging,
         };
 
-        const { rows: insertValueRows } = await insertValue(
-          client,
-          value.value,
-          product.product_id,
-          attribute.attribute_id
-        );
-        value.value_id = insertValueRows[0].value_id;
-        await insertExtraPrice(
-          client,
-          value.value_id,
-          currencyId,
-          value.extra_price
-        );
+        const { rows: getAttributeRows, rowCount: getAttributeRowCount } =
+          await getAttribute(
+            client,
+            attribute.attribute_name,
+            product.product_id
+          );
+        if (!getAttributeRowCount) {
+          const { rows: insertAttributeRows } = await insertAttribute(
+            client,
+            attribute.attribute_name,
+            product.product_id,
+            attribute.packaging
+          );
+          attribute.attribute_id = insertAttributeRows[0].attribute_id;
+        } else attribute.attribute_id = getAttributeRows[0].attribute_id;
 
-        attribute.values.push(value);
+        for (let val of attr.values) {
+          const value = {
+            value_id: null,
+            value: val.value,
+            extra_price: val.extra_price || "0",
+          };
+
+          const { rows: insertValueRows } = await insertValue(
+            client,
+            value.value,
+            product.product_id,
+            attribute.attribute_id
+          );
+          value.value_id = insertValueRows[0].value_id;
+          await insertExtraPrice(
+            client,
+            value.value_id,
+            currencyId,
+            value.extra_price
+          );
+
+          attribute.values.push(value);
+        }
+
+        product.attributes.push(attribute);
       }
-
-      product?.attributes.push(attribute);
     }
 
     await client.query("COMMIT");
@@ -153,12 +165,14 @@ const put = async (req, res) => {
       product_name: data.productName,
       default_price: data.defaultPrice,
       currency_code: data.defaultCurrency,
+      hasAttributes: data.hasAttributes,
       attributes: [],
     };
 
     const { rows: getOneRows } = await getOne(client, product.product_id);
     const oldProduct = getOneRows[0];
 
+    console.log("oldProduct", oldProduct);
     await update(client, product);
 
     const { rows: currenyRows, rowCount: currencyRowCount } = await currency(
@@ -181,29 +195,78 @@ const put = async (req, res) => {
       product.product_id
     );
 
-    const deletedAttributes = oldProduct?.attributes.filter((oldAttr) => {
-      if (
-        !data.attributes.find(
-          (attr) => attr.attribute_id === oldAttr.attribute_id
+    if (oldProduct.hasAttributes) {
+      const deletedAttributes = oldProduct.attributes.filter((oldAttr) => {
+        if (
+          !data.attributes.find(
+            (attr) => attr.attribute_id === oldAttr.attribute_id
+          )
         )
-      )
-        return oldAttr;
-    });
+          return oldAttr;
+      });
 
-    for (const attr of deletedAttributes) {
-      const { rowCount: delAttributeRowCount } = await delAttribute(
-        client,
-        null,
-        attr.attribute_id
-      );
-      if (!delAttributeRowCount) {
-        client.release();
-        return res
-          .status(httpStatus.NOT_FOUND)
-          .send({ message: "There is no such record." });
+      for (const attr of deletedAttributes) {
+        const { rowCount: delAttributeRowCount } = await delAttribute(
+          client,
+          null,
+          attr.attribute_id
+        );
+        if (!delAttributeRowCount) {
+          client.release();
+          return res
+            .status(httpStatus.NOT_FOUND)
+            .send({ message: "There is no such record." });
+        }
+
+        for (const val of attr.values) {
+          const { rowCount: delValueRowCount, rows: delValueRows } =
+            await delValue(client, null, val.value_id);
+          if (!delValueRowCount) {
+            client.release();
+            return res
+              .status(httpStatus.NOT_FOUND)
+              .send({ message: "There is no such record." });
+          }
+
+          const { rowCount: delExtraPriceRowCount } = await delExtraPrice(
+            client,
+            val.value_id
+          );
+          if (!delExtraPriceRowCount) {
+            client.release();
+            return res
+              .status(httpStatus.NOT_FOUND)
+              .send({ message: "There is no such record." });
+          }
+        }
       }
+    }
+    if (product.hasAttributes) {
+      const updatedAttributes = oldProduct.attributes.filter((oldAttr) => {
+        if (
+          data.attributes.find(
+            (attr) => attr.attribute_id === oldAttr.attribute_id
+          )
+        )
+          return oldAttr;
+      });
 
-      for (const val of attr.values) {
+      const oldValues = [];
+      updatedAttributes.forEach((updatedAttr) => {
+        oldValues.push(...updatedAttr.values);
+      });
+
+      const newValues = [];
+      data.attributes.forEach((attr) => {
+        newValues.push(...attr.values);
+      });
+
+      const deletedValues = oldValues.filter((oldVal) => {
+        if (!newValues.find((val) => val.value_id === oldVal.value_id))
+          return oldVal;
+      });
+
+      for (const val of deletedValues) {
         const { rowCount: delValueRowCount, rows: delValueRows } =
           await delValue(client, null, val.value_id);
         if (!delValueRowCount) {
@@ -224,126 +287,108 @@ const put = async (req, res) => {
             .send({ message: "There is no such record." });
         }
       }
-    }
 
-    const updatedAttributes = oldProduct.attributes.filter((oldAttr) => {
-      if (
-        data.attributes.find(
-          (attr) => attr.attribute_id === oldAttr.attribute_id
-        )
-      )
-        return oldAttr;
-    });
+      for (let attr of data.attributes) {
+        // Use let instead of const to create a new binding for each iteration
+        await client.query("BEGIN");
+        try {
+          const attribute = {
+            attribute_id: attr?.attribute_id,
+            attribute_name: attr.attribute_name,
+            values: [],
+            packaging: attr.packaging,
+          };
 
-    const oldValues = [];
-    updatedAttributes.forEach((updatedAttr) => {
-      oldValues.push(...updatedAttr.values);
-    });
+          if (attribute.attribute_id) {
+            await updateAttribute(
+              client,
+              attr.attribute_name,
+              attr.attribute_id,
+              attr.packaging
+            );
+          } else {
+            const { rows: getAttributeRows, rowCount: getAttributeRowCount } =
+              await getAttribute(
+                client,
+                attribute.attribute_name,
+                product.product_id
+              );
+            if (!getAttributeRowCount) {
+              const { rows: insertAttributeRows } = await insertAttribute(
+                client,
+                attribute.attribute_name,
+                product.product_id,
+                attr.packaging
+              );
+              attribute.attribute_id = insertAttributeRows[0].attribute_id;
+            } else attribute.attribute_id = getAttributeRows[0].attribute_id;
+          }
 
-    const newValues = [];
-    data.attributes.forEach((attr) => {
-      newValues.push(...attr.values);
-    });
+          for (let val of attr.values) {
+            await client.query("BEGIN");
+            try {
+              const value = {
+                value_id: val?.value_id,
+                value: val.value,
+                extra_price: val?.extra_price || "0",
+              };
 
-    const deletedValues = oldValues.filter((oldVal) => {
-      if (!newValues.find((val) => val.value_id === oldVal.value_id))
-        return oldVal;
-    });
+              if (value.value_id) {
+                console.log("yay value id exist");
+                console.log("value info: ", value.value, attr.attribute_id);
+                await updateValue(
+                  client,
+                  value.value,
+                  attr.attribute_id,
+                  value.value_id
+                );
+                await updateExtraPrice(
+                  client,
+                  value.extra_price,
+                  currencyId,
+                  value.value_id
+                );
+              } else {
+                const { rows: insertValueRows } = await insertValue(
+                  client,
+                  value.value,
+                  product.product_id,
+                  attribute.attribute_id
+                );
+                value.value_id = insertValueRows[0].value_id;
+                await insertExtraPrice(
+                  client,
+                  value.value_id,
+                  currencyId,
+                  value.extra_price
+                );
+              }
 
-    for (const val of deletedValues) {
-      const { rowCount: delValueRowCount, rows: delValueRows } = await delValue(
-        client,
-        null,
-        val.value_id
-      );
-      if (!delValueRowCount) {
-        client.release();
-        return res
-          .status(httpStatus.NOT_FOUND)
-          .send({ message: "There is no such record." });
-      }
+              attribute.values.push(value);
+              await client.query("COMMIT");
+            } catch (error) {
+              await client.query("ROLLBACK");
+              console.error("Transaction rolled back:", error);
+              throw new Error("Error processing details");
+            }
+          }
 
-      const { rowCount: delExtraPriceRowCount } = await delExtraPrice(
-        client,
-        val.value_id
-      );
-      if (!delExtraPriceRowCount) {
-        client.release();
-        return res
-          .status(httpStatus.NOT_FOUND)
-          .send({ message: "There is no such record." });
-      }
-    }
-
-    for (const attr of data.attributes) {
-      const attribute = {
-        attribute_id: attr?.attribute_id,
-        attribute_name: attr.attribute_name,
-        values: [],
-      };
-
-      if (attribute.attribute_id) {
-        await updateAttribute(client, attr.attribute_name, attr.attribute_id);
-      } else {
-        const { rows: getAttributeRows, rowCount: getAttributeRowCount } =
-          await getAttribute(
-            client,
-            attribute.attribute_name,
-            product.product_id
-          );
-        if (!getAttributeRowCount) {
-          const { rows: insertAttributeRows } = await insertAttribute(
-            client,
-            attribute.attribute_name,
-            product.product_id
-          );
-          attribute.attribute_id = insertAttributeRows[0].attribute_id;
-        } else attribute.attribute_id = getAttributeRows[0].attribute_id;
-      }
-
-      for (const val of attr.values) {
-        const value = {
-          value_id: val?.value_id,
-          value: val.value,
-          extra_price: val?.extra_price || "0",
-        };
-
-        if (value.value_id) {
-          await updateValue(client, value.value, attr.attribute_id);
-          await updateExtraPrice(
-            client,
-            value.extra_price,
-            currencyId,
-            value.value_id
-          );
-        } else {
-          const { rows: insertValueRows } = await insertValue(
-            client,
-            value.value,
-            product.product_id,
-            attribute.attribute_id
-          );
-          value.value_id = insertValueRows[0].value_id;
-          await insertExtraPrice(
-            client,
-            value.value_id,
-            currencyId,
-            value.extra_price
-          );
+          product.attributes.push(attribute);
+        } catch (error) {
+          await client.query("ROLLBACK");
+          console.error("Transaction rolled back:", error);
+          throw new Error("Error processing details");
         }
-
-        attribute.values.push(value);
       }
-
-      product?.attributes.push(attribute);
     }
 
     await client.query("COMMIT");
     client.release();
     res.status(httpStatus.CREATED).send(product);
   } catch (e) {
-     console.log(e)
-    client.release();
+    await client.query("ROLLBACK");
+    console.error("Transaction rolled back:", e);
+
     res
       .status(httpStatus.INTERNAL_SERVER_ERROR)
       .send({ error: "An error occurred." });
@@ -357,7 +402,10 @@ const remove = async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    const { rowCount: delRowCount } = await del(client, product_id);
+    const { rowCount: delRowCount, rows: deletedProduct } = await del(
+      client,
+      product_id
+    );
     if (!delRowCount) {
       client.release();
       return res
@@ -374,38 +422,42 @@ const remove = async (req, res) => {
         .send({ message: "There is no such record." });
     }
 
-    const { rowCount: delAttributeRowCount } = await delAttribute(
-      client,
-      product_id
-    );
-    if (!delAttributeRowCount) {
-      client.release();
-      return res
-        .status(httpStatus.NOT_FOUND)
-        .send({ message: "There is no such record." });
-    }
+    const hasAttributes = deletedProduct[0].hasAttributes;
 
-    const { rowCount: delValueRowCount, rows: delValueRows } = await delValue(
-      client,
-      product_id
-    );
-    if (!delValueRowCount) {
-      client.release();
-      return res
-        .status(httpStatus.NOT_FOUND)
-        .send({ message: "There is no such record." });
-    }
-
-    for (let row of delValueRows) {
-      const { rowCount: delExtraPriceRowCount } = await delExtraPrice(
+    if (hasAttributes) {
+      const { rowCount: delAttributeRowCount } = await delAttribute(
         client,
-        row.value_id
+        product_id
       );
-      if (!delExtraPriceRowCount) {
+      if (!delAttributeRowCount) {
         client.release();
         return res
           .status(httpStatus.NOT_FOUND)
           .send({ message: "There is no such record." });
+      }
+
+      const { rowCount: delValueRowCount, rows: delValueRows } = await delValue(
+        client,
+        product_id
+      );
+      if (!delValueRowCount) {
+        client.release();
+        return res
+          .status(httpStatus.NOT_FOUND)
+          .send({ message: "There is no such record." });
+      }
+
+      for (let row of delValueRows) {
+        const { rowCount: delExtraPriceRowCount } = await delExtraPrice(
+          client,
+          row.value_id
+        );
+        if (!delExtraPriceRowCount) {
+          client.release();
+          return res
+            .status(httpStatus.NOT_FOUND)
+            .send({ message: "There is no such record." });
+        }
       }
     }
 

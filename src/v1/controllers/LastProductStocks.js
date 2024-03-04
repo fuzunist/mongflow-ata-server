@@ -72,29 +72,29 @@ const remove = async (req, res) => {
       }
     }
 
-    const warehouseStockUpdateResult = await undoWarehouseStockUpdate(
-      logData,
-      client
-    );
-    if (warehouseStockUpdateResult.rowCount === 0) {
-      await client.query("ROLLBACK");
-      return res
-        .status(httpStatus.NOT_MODIFIED)
-        .send({ error: "Warehouse stock update was not successful" });
-    } else {
-      if (warehouseStockUpdateResult.rows[0].quantity === 0) {
-        const { rowCount } = await delWarehouse(
-          warehouseStockUpdateResult.rows[0].id,
-          client
-        );
-        if (!rowCount) {
-          await client.query("ROLLBACK");
-          return res
-            .status(httpStatus.NOT_MODIFIED)
-            .send({ error: "Warehouse Stock delete was not successful" });
-        }
-      }
-    }
+    // const warehouseStockUpdateResult = await undoWarehouseStockUpdate(
+    //   logData,
+    //   client
+    // );
+    // if (warehouseStockUpdateResult.rowCount === 0) {
+    //   await client.query("ROLLBACK");
+    //   return res
+    //     .status(httpStatus.NOT_MODIFIED)
+    //     .send({ error: "Warehouse stock update was not successful" });
+    // } else {
+    //   if (warehouseStockUpdateResult.rows[0].quantity === 0) {
+    //     const { rowCount } = await delWarehouse(
+    //       warehouseStockUpdateResult.rows[0].id,
+    //       client
+    //     );
+    //     if (!rowCount) {
+    //       await client.query("ROLLBACK");
+    //       return res
+    //         .status(httpStatus.NOT_MODIFIED)
+    //         .send({ error: "Warehouse Stock delete was not successful" });
+    //     }
+    //   }
+    // }
 
     await client.query("COMMIT");
     return res
@@ -152,21 +152,21 @@ const create = async (req, res) => {
           stockResult = { ...stocks[0], attributedetails: attributedetails };
         }
 
-        const { rows: warehouseRows } = await getWarehouseStock(data, client);
+        // const { rows: warehouseRows } = await getWarehouseStock(data, client);
 
-        let warehouseResult;
-        if (warehouseRows[0]) {
-          warehouseResult = await updateWarehouseStock(
-            {
-              id: warehouseRows[0].id,
-              price: data.price,
-              quantity: data.quantity,
-            },
-            client
-          );
-        } else {
-          warehouseResult = await insertWarehouseStock(data, client);
-        }
+        // let warehouseResult;
+        // if (warehouseRows[0]) {
+        //   warehouseResult = await updateWarehouseStock(
+        //     {
+        //       id: warehouseRows[0].id,
+        //       price: data.price,
+        //       quantity: data.quantity,
+        //     },
+        //     client
+        //   );
+        // } else {
+        //   warehouseResult = await insertWarehouseStock(data, client);
+        // }
         const { rows: productRows } = await getName(data.product_id, client);
         global.socketio.emit("notification", {
           type: "stock",
@@ -201,11 +201,11 @@ const create = async (req, res) => {
             currency_code,
           },
           stocks: { ...stockResult, product_name },
-          warehouseStocks: {
-            ...warehouseResult?.rows[0],
-            attributedetails,
-            product_name,
-          },
+          // warehouseStocks: {
+          //   ...warehouseResult?.rows[0],
+          //   attributedetails,
+          //   product_name,
+          // },
         });
       })
       .catch(async (e) => {
@@ -247,16 +247,21 @@ const getAllWarehouseStock = (req, res) => {
 };
 
 const getAllProductStocks = (req, res) => {
+ try{
   getProductStocks()
-    .then(({ rows }) => {
-      return res.status(httpStatus.OK).send(rows);
-    })
-    .catch((e) => {
-      console.log(e);
-      res
-        .status(httpStatus.INTERNAL_SERVER_ERROR)
-        .send({ error: "An error occurred." });
-    });
+  .then(({ rows }) => {
+     console.log("rows of lastproductstocks",rows)
+    return res.status(httpStatus.OK).send(rows);
+  })
+  .catch((e) => {
+    console.log(e);
+    res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
+      .send({ error: "An error occurred." });
+  });
+ }catch(err){
+ console.log(err)
+ }
 };
 
 const getLogsByDate = async (req, res) => {

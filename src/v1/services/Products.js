@@ -6,6 +6,12 @@ const insertCurrency = (client, defaultCurrency) => {
     return client.query('INSERT INTO Currency(currency_code) VALUES($1) RETURNING currency_id', [defaultCurrency])
 }
 
+const getCurrency= ( currency_id, client)=>{
+    return client.query('SELECT currency_code FROM currency WHERE currency_id = $1', [currency_id])
+
+}
+
+
 const insertCurrencyId = (client, productId, currencyId, defaultPrice) => {
     return client.query('INSERT INTO ProductDefaultPrice(product_id, currency_id, default_price) VALUES($1, $2, $3)', [
         productId,
@@ -80,12 +86,12 @@ const delExtraPrice = (client, value_id) => {
     return client.query('DELETE FROM "attributevalueextraprice" WHERE value_id = $1', [value_id])
 }
 
-const insert = (client, name, userid, type) => {
-    return client.query('INSERT INTO product(product_name, userid, product_type) VALUES($1, $2, $3) RETURNING product_id', [name, userid, type])
+const insert = (client, name, userid, type, hasAttributes) => {
+    return client.query('INSERT INTO product(product_name, userid, product_type, "hasAttributes") VALUES($1, $2, $3, $4) RETURNING product_id', [name, userid, type, hasAttributes])
 }
 
 const update = (client, data) => {
-    return client.query('UPDATE "product" SET product_name = $1 WHERE product_id = $2 RETURNING *', [data.product_name, data.product_id])
+    return client.query('UPDATE "product" SET product_name = $1, "hasAttributes"= $2 WHERE product_id = $3 RETURNING *', [data.product_name,data.hasAttributes, data.product_id])
 }
 
 const getAll = () => {
@@ -114,16 +120,18 @@ const getAll = () => {
             p.product_id,
             p.product_name,
             p.product_type,
+            p."hasAttributes",
             pd.default_price,
             c.currency_id,
             c.currency_code,
             CASE
-                WHEN COUNT(av.attribute_id) = 0 THEN NULL
-                ELSE jsonb_agg(jsonb_build_object(
-                    'attribute_id', av.attribute_id,
-                    'attribute_name', av.attribute_name,
-                    'values', av.values
-                ) ORDER BY av.attribute_id ASC)
+                WHEN p."hasAttributes" THEN
+                    jsonb_agg(jsonb_build_object(
+                        'attribute_id', av.attribute_id,
+                        'attribute_name', av.attribute_name,
+                        'values', av.values
+                    ) ORDER BY av.attribute_id ASC)
+                ELSE NULL
             END AS attributes
         FROM
             product AS p
@@ -134,7 +142,7 @@ const getAll = () => {
         LEFT JOIN
             AttributeValues AS av ON p.product_id = av.product_id
         GROUP BY
-            p.product_id, p.product_name, p.product_type, pd.default_price, c.currency_id, c.currency_code
+            p.product_id, p.product_name, p.product_type, pd.default_price, c.currency_id, c.currency_code, p."hasAttributes"
         ORDER BY
             p.product_id ASC;
         
@@ -168,6 +176,7 @@ const getOne = (client, product_id) => {
                 p.product_id,
                 p.product_name,
                 p.product_type,
+                p."hasAttributes",
                 pd.default_price,
                 c.currency_id,
                 c.currency_code,
@@ -187,7 +196,7 @@ const getOne = (client, product_id) => {
             WHERE
                 p.product_id = $1
             GROUP BY
-                p.product_id, p.product_name, pd.default_price, p.product_type, c.currency_id, c.currency_code
+                p.product_id, p.product_name, pd.default_price, p.product_type, p."hasAttributes", c.currency_id, c.currency_code
             ORDER BY
                 p.product_id ASC
         `,
@@ -202,12 +211,13 @@ const getName = (product_id, client ) => {
 }
 
 const del = (client, product_id) => {
-    return client.query('DELETE FROM "product" WHERE product_id = $1', [product_id])
+    return client.query('DELETE FROM "product" WHERE product_id = $1 RETURNING "hasAttributes"', [product_id])
 }
 
 module.exports = {
     getName,
     currency,
+    getCurrency,
     insertCurrency,
     insertCurrencyId,
     getAttribute,
