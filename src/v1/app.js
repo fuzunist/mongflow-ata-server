@@ -23,7 +23,9 @@ const {
   ProductionRoutes,
   SetRoutes,
   ExpensesRoutes,
-  ShipmentRoutes
+  ShipmentRoutes,
+  ConsumablesRoutes,
+  SecondQualityProductsRoutes,
 } = require("./api-routes");
 
 const port = process.env.APP_PORT || 4005;
@@ -38,7 +40,6 @@ app.use(
     optionsSuccessStatus: 204,
   })
 );
-
 
 // bu sql deki clone_latest_expenses_row() fonksiyonu
 // CREATE OR REPLACE FUNCTION clone_latest_expenses_row() RETURNS void AS $$BEGIN INSERT INTO expenses (saved_expenses, monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost, date) SELECT saved_expenses,monthly_expenses, daily_expenses, hourly_expenses, monthly_cost, daily_cost, hourly_cost, NOW() AS date FROM expenses ORDER BY date DESC LIMIT 1;END; $$ LANGUAGE plpgsql;
@@ -78,6 +79,8 @@ server.listen(port, () => {
   app.use("/recipe", RecipeRoutes);
   app.use("/stock/rawmaterial", RawMaterialsRoutes);
   app.use("/stock/recipematerial", RecipeMaterialsRoutes);
+  app.use("/stock/consumables", ConsumablesRoutes);
+  app.use("/stock/secondqualityproduct", SecondQualityProductsRoutes);
   app.use("/set", SetRoutes);
   app.use("/order", OrderRoutes);
   app.use("/stock", StockRoutes);
@@ -86,5 +89,4 @@ server.listen(port, () => {
   app.use("/other", OtherRoutes);
   app.use("/expenses", ExpensesRoutes);
   app.use("/shipment", ShipmentRoutes);
-
 });

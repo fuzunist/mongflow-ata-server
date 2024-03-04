@@ -339,7 +339,6 @@ const put = async (req, res) => {
                 await updateValue(
                   client,
                   value.value,
-                  attr.attribute_id,
                   value.value_id
                 );
                 await updateExtraPrice(

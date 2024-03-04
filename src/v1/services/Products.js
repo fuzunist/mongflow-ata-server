@@ -2,15 +2,14 @@ const currency = (client, defaultCurrency) => {
     return client.query('SELECT currency_id FROM Currency WHERE currency_code = $1', [defaultCurrency])
 }
 
-const insertCurrency = (client, defaultCurrency) => {
-    return client.query('INSERT INTO Currency(currency_code) VALUES($1) RETURNING currency_id', [defaultCurrency])
-}
-
 const getCurrency= ( currency_id, client)=>{
     return client.query('SELECT currency_code FROM currency WHERE currency_id = $1', [currency_id])
 
 }
 
+const insertCurrency = (client, defaultCurrency) => {
+    return client.query('INSERT INTO Currency(currency_code) VALUES($1) RETURNING currency_id', [defaultCurrency])
+}
 
 const insertCurrencyId = (client, productId, currencyId, defaultPrice) => {
     return client.query('INSERT INTO ProductDefaultPrice(product_id, currency_id, default_price) VALUES($1, $2, $3)', [
@@ -36,12 +35,12 @@ const getAttribute = (client, name, productId) => {
     return client.query('SELECT attribute_id FROM attribute WHERE attribute_name = $1 AND product_id = $2', [name, productId])
 }
 
-const insertAttribute = (client, name, productId) => {
-    return client.query('INSERT INTO attribute(attribute_name, product_id) VALUES($1, $2) RETURNING attribute_id', [name, productId])
+const insertAttribute = (client, name, productId, packaging) => {
+    return client.query('INSERT INTO attribute(attribute_name, product_id, packaging) VALUES($1, $2, $3) RETURNING attribute_id', [name, productId, packaging])
 }
 
-const updateAttribute = (client, attribute_name, attribute_id) => {
-    return client.query('UPDATE "attribute" SET attribute_name = $1 WHERE attribute_id = $2 RETURNING *', [attribute_name, attribute_id])
+const updateAttribute = (client, attribute_name, attribute_id, packaging) => {
+    return client.query('UPDATE "attribute" SET attribute_name = $1, packaging=$3 WHERE attribute_id = $2 RETURNING *', [attribute_name, attribute_id, packaging])
 }
 
 const delAttribute = (client, product_id, attribute_id) => {
@@ -57,8 +56,8 @@ const insertValue = (client, name, productId, attributeId) => {
     return client.query('INSERT INTO value(product_id, attribute_id, value) VALUES($1, $2, $3) RETURNING value_id', [productId, attributeId, name])
 }
 
-const updateValue = (client, value, attribute_id) => {
-    return client.query('UPDATE "value" SET value = $1 WHERE attribute_id = $2 RETURNING *', [value, attribute_id])
+const updateValue = (client, value, value_id) => {
+    return client.query('UPDATE "value" SET value = $1 WHERE value_id = $2 RETURNING *', [value, value_id])
 }
 
 const delValue = (client, product_id, value_id) => {
@@ -87,16 +86,22 @@ const delExtraPrice = (client, value_id) => {
 }
 
 const insert = (client, name, userid, type, hasAttributes) => {
-    return client.query('INSERT INTO product(product_name, userid, product_type, "hasAttributes") VALUES($1, $2, $3, $4) RETURNING product_id', [name, userid, type, hasAttributes])
-}
+  return client.query(
+    'INSERT INTO product(product_name, userid, product_type, "hasAttributes") VALUES($1, $2, $3, $4) RETURNING product_id',
+    [name, userid, type, hasAttributes]
+  );
+};
 
 const update = (client, data) => {
-    return client.query('UPDATE "product" SET product_name = $1, "hasAttributes"= $2 WHERE product_id = $3 RETURNING *', [data.product_name,data.hasAttributes, data.product_id])
-}
+  return client.query(
+    'UPDATE "product" SET product_name = $1, "hasAttributes"= $2 WHERE product_id = $3 RETURNING *',
+    [data.product_name, data.hasAttributes, data.product_id]
+  );
+};
 
 const getAll = () => {
-    return process.pool.query(
-        `
+  return process.pool.query(
+    `
         WITH AttributeValues AS (
             SELECT
                 v.product_id,
@@ -147,12 +152,12 @@ const getAll = () => {
             p.product_id ASC;
         
         `
-    )
-}
+  );
+};
 
 const getOne = (client, product_id) => {
-    return client.query(
-        `
+  return client.query(
+    `
             WITH AttributeValues AS (
                 SELECT
                     v.product_id,
@@ -200,42 +205,45 @@ const getOne = (client, product_id) => {
             ORDER BY
                 p.product_id ASC
         `,
-        [product_id]
-    )
-}
+    [product_id]
+  );
+};
 
-const getName = (product_id, client ) => {
-    const query = 'SELECT product_name FROM product WHERE product_id = $1'
-    if (client) return client.query(query, [product_id])
-    return process.pool.query(query, [product_id])
-}
+const getName = (product_id, client) => {
+  const query = "SELECT product_name FROM product WHERE product_id = $1";
+  if (client) return client.query(query, [product_id]);
+  return process.pool.query(query, [product_id]);
+};
 
 const del = (client, product_id) => {
-    return client.query('DELETE FROM "product" WHERE product_id = $1 RETURNING "hasAttributes"', [product_id])
-}
+  return client.query(
+    'DELETE FROM "product" WHERE product_id = $1 RETURNING "hasAttributes"',
+    [product_id]
+  );
+};
 
 module.exports = {
-    getName,
-    currency,
-    getCurrency,
-    insertCurrency,
-    insertCurrencyId,
-    getAttribute,
-    insertAttribute,
-    getValue,
-    insertValue,
-    insertExtraPrice,
-    insert,
-    getAll,
-    getOne,
-    update,
-    updateProductDefaultPrice,
-    updateAttribute,
-    updateExtraPrice,
-    updateValue,
-    del,
-    delProductDefaultPrice,
-    delAttribute,
-    delExtraPrice,
-    delValue
-}
+  getName,
+  currency,
+  getCurrency,
+  insertCurrency,
+  insertCurrencyId,
+  getAttribute,
+  insertAttribute,
+  getValue,
+  insertValue,
+  insertExtraPrice,
+  insert,
+  getAll,
+  getOne,
+  update,
+  updateProductDefaultPrice,
+  updateAttribute,
+  updateExtraPrice,
+  updateValue,
+  del,
+  delProductDefaultPrice,
+  delAttribute,
+  delExtraPrice,
+  delValue,
+};
