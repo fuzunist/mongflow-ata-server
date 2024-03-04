@@ -35,12 +35,12 @@ const getAttribute = (client, name, productId) => {
     return client.query('SELECT attribute_id FROM attribute WHERE attribute_name = $1 AND product_id = $2', [name, productId])
 }
 
-const insertAttribute = (client, name, productId, packaging) => {
-    return client.query('INSERT INTO attribute(attribute_name, product_id, packaging) VALUES($1, $2, $3) RETURNING attribute_id', [name, productId, packaging])
+const insertAttribute = (client, name, productId) => {
+    return client.query('INSERT INTO attribute(attribute_name, product_id) VALUES($1, $2) RETURNING attribute_id', [name, productId])
 }
 
-const updateAttribute = (client, attribute_name, attribute_id, packaging) => {
-    return client.query('UPDATE "attribute" SET attribute_name = $1, packaging=$3 WHERE attribute_id = $2 RETURNING *', [attribute_name, attribute_id, packaging])
+const updateAttribute = (client, attribute_name, attribute_id) => {
+    return client.query('UPDATE "attribute" SET attribute_name = $1 WHERE attribute_id = $2 RETURNING *', [attribute_name, attribute_id])
 }
 
 const delAttribute = (client, product_id, attribute_id) => {

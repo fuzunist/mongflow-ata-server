@@ -83,7 +83,7 @@ const create = async (req, res) => {
           attribute_id: null,
           attribute_name: attr.attribute_name,
           values: [],
-          packaging: attr.packaging,
+          // packaging: attr.packaging,
         };
 
         const { rows: getAttributeRows, rowCount: getAttributeRowCount } =
@@ -97,7 +97,7 @@ const create = async (req, res) => {
             client,
             attribute.attribute_name,
             product.product_id,
-            attribute.packaging
+            // attribute.packaging
           );
           attribute.attribute_id = insertAttributeRows[0].attribute_id;
         } else attribute.attribute_id = getAttributeRows[0].attribute_id;
@@ -172,7 +172,6 @@ const put = async (req, res) => {
     const { rows: getOneRows } = await getOne(client, product.product_id);
     const oldProduct = getOneRows[0];
 
-    console.log("oldProduct", oldProduct);
     await update(client, product);
 
     const { rows: currenyRows, rowCount: currencyRowCount } = await currency(
@@ -296,7 +295,7 @@ const put = async (req, res) => {
             attribute_id: attr?.attribute_id,
             attribute_name: attr.attribute_name,
             values: [],
-            packaging: attr.packaging,
+            // packaging: attr.packaging,
           };
 
           if (attribute.attribute_id) {
@@ -304,7 +303,7 @@ const put = async (req, res) => {
               client,
               attr.attribute_name,
               attr.attribute_id,
-              attr.packaging
+              // attr.packaging
             );
           } else {
             const { rows: getAttributeRows, rowCount: getAttributeRowCount } =
@@ -318,7 +317,7 @@ const put = async (req, res) => {
                 client,
                 attribute.attribute_name,
                 product.product_id,
-                attr.packaging
+                // attr.packaging
               );
               attribute.attribute_id = insertAttributeRows[0].attribute_id;
             } else attribute.attribute_id = getAttributeRows[0].attribute_id;
@@ -334,8 +333,6 @@ const put = async (req, res) => {
               };
 
               if (value.value_id) {
-                console.log("yay value id exist");
-                console.log("value info: ", value.value, attr.attribute_id);
                 await updateValue(
                   client,
                   value.value,
