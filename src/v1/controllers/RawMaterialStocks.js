@@ -12,6 +12,10 @@ const {
   insertStock,
   getRangeLogs,
   // getAllAttributeDetails
+  delLog,
+  delStock,
+  getLog,
+  undoStockUpdate
 } = require("../services/RawMaterialStocks");
 const httpStatus = require("http-status/lib");
 const { findOne } = require("../services/Users");
@@ -221,6 +225,63 @@ const putLog = async (req, res) => {
     console.log(err);
   }
 };
+
+const remove = async (req, res) => {
+  const client = await process.pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const { rows: log } = await getLog(req.params.id, client);
+
+    if (!log || !log.length) {
+      // Handle if no log is found
+      return res.status(httpStatus.NOT_FOUND).send({ error: "Log not found" });
+    }
+
+    const logData = log[0];
+
+    const delLogResult = await delLog(req.params.id, client);
+    if (delLogResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res
+        .status(httpStatus.NOT_MODIFIED)
+        .send({ error: "No rows were deleted" });
+    }
+
+    const stockUpdateResult = await undoStockUpdate(logData, client);
+    if (stockUpdateResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res
+        .status(httpStatus.NOT_MODIFIED)
+        .send({ error: "raw Stock update was not successful" });
+    } else {
+      if (stockUpdateResult.rows[0].quantity === 0) {
+        const { rowCount } = await delStock(
+          stockUpdateResult.rows[0].id,
+          client
+        );
+        if (!rowCount) {
+          await client.query("ROLLBACK");
+          return res
+            .status(httpStatus.NOT_MODIFIED)
+            .send({ error: "raw stock delete was not successful" });
+        }
+      }
+    }
+
+    await client.query("COMMIT");
+    return res
+      .status(httpStatus.NO_CONTENT)
+      .send({ status: httpStatus.OK, message: "Silme işlemi Başarılı!" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error(err);
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: err.message });
+  } finally {
+    client.release(); // Release the client back to the pool
+  }
+};
+
 module.exports = {
   get,
   put,
@@ -229,4 +290,5 @@ module.exports = {
   getLogsByDate,
   putLog,
   createLog,
+  remove
 };

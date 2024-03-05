@@ -79,7 +79,7 @@ server.listen(port, () => {
   app.use("/recipe", RecipeRoutes);
   app.use("/stock/rawmaterial", RawMaterialsRoutes);
   app.use("/stock/recipematerial", RecipeMaterialsRoutes);
-  app.use("/stock/consumables", ConsumablesRoutes);
+  app.use("/stock/consumable", ConsumablesRoutes);
   app.use("/stock/secondqualityproduct", SecondQualityProductsRoutes);
   app.use("/set", SetRoutes);
   app.use("/order", OrderRoutes);

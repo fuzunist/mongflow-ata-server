@@ -334,6 +334,55 @@ const updateStock = (data, client) => {
   return process.pool.query(query, values);
 };
 
+const delLog = (id, client) => {
+  const query = `DELETE FROM recipemateriallogs WHERE id = $1`;
+  const values = [id];
+
+  if (client) return client.query(query, values);
+  return process.pool.query(query, values);
+};
+
+const delStock = (id, client) => {
+  const query = `DELETE FROM recipematerialstocks WHERE id = $1`;
+  const values = [id];
+
+  if (client) return client.query(query, values);
+  return process.pool.query(query, values);
+};
+
+
+
+const getLog = (id, client) => {
+  const query =
+    "SELECT product_id, attributes, price, quantity, customer_id, customer_city, customer_county FROM recipemateriallogs WHERE id = $1";
+  const values = [id];
+
+  if (client) return client.query(query, values);
+  return process.pool.query(query, values);
+};
+
+const undoStockUpdate = (data, client) => {
+  const query = `
+  UPDATE recipematerialstocks 
+  SET 
+      price = CASE 
+                  WHEN (quantity - $4::numeric) <= 0 THEN 0 
+                  ELSE ROUND(((price * quantity - $4::numeric * $3::numeric) / (quantity - $4::numeric))::numeric, 4) 
+              END,
+      quantity = CASE 
+                    WHEN (quantity - $4::numeric) <= 0 THEN 0 
+                    ELSE quantity - $4::numeric 
+                END
+  WHERE 
+      product_id = $1 AND 
+      attributes = $2 
+  RETURNING *`;
+
+  const values = [data.product_id, data.attributes, data.price, data.quantity];
+
+  if (client) return client.query(query, values);
+  return process.pool.query(query, values);
+};
 module.exports = {
   getAll,
   updateEach,
@@ -349,4 +398,8 @@ module.exports = {
   updateEachStock,
   updateEachStockInProduction,
   // getAllAttributeDetails
+  delLog,
+  delStock,
+  getLog,
+  undoStockUpdate
 };
