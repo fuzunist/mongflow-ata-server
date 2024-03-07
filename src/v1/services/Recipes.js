@@ -1,8 +1,8 @@
 const insert = (data) => {
   console.log(data);
   return process.pool.query(
-    `INSERT INTO recipes(order_id, details, cost, id, total_bunker, wastage_percentage, unit_bunker_cost, total_bunker_cost) 
-     VALUES($1, $2, $3, $4, $5, $6, $7, $8) 
+    `INSERT INTO recipes(order_id, details, cost, id, total_bunker, wastage_percentage, unit_bunker_cost, total_bunker_cost, product_id, attributes) 
+     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
      RETURNING *`,
     [
       data.order_id,
@@ -13,14 +13,16 @@ const insert = (data) => {
       data.wastage_percentage,
       data.unit_bunker_cost,
       data.total_bunker_cost,
+      data.product_id,
+      data.attributes
     ]
   );
 };
 const insertProductionRecipe = (data) => {
   console.log(data);
   return process.pool.query(
-    `INSERT INTO productionrecipes(id,order_id, details, cost, total_bunker, total_kg, wastage_percentage, unit_bunker_cost, total_bunker_cost, date) 
-     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+    `INSERT INTO productionrecipes(id,order_id, details, cost, total_bunker, total_kg, wastage_percentage, unit_bunker_cost, total_bunker_cost, date, product_id, attributes) 
+     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
      RETURNING *`,
     [
       data.id,
@@ -33,6 +35,8 @@ const insertProductionRecipe = (data) => {
       data.unit_bunker_cost,
       data.total_bunker_cost,
       data.date,
+      data.product_id,
+      data.attributes
     ]
   );
 };
