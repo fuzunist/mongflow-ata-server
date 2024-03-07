@@ -1,5 +1,6 @@
 module.exports.UserRoutes = require("./Users");
 module.exports.CustomerRoutes = require("./Customers");
+module.exports.ShiftRoutes = require("./Shifts");
 module.exports.ProductRoutes = require("./Products");
 module.exports.LastProductStockRoutes = require("./LastProductStocks");
 module.exports.RecipeRoutes = require("./Recipe");

@@ -12,6 +12,7 @@ require("./loaders")(server);
 const {
   UserRoutes,
   CustomerRoutes,
+  ShiftRoutes,
   ProductRoutes,
   LastProductStockRoutes,
   RecipeMaterialsRoutes,
@@ -75,6 +76,8 @@ server.listen(port, () => {
   console.log(`The server is running on port ${port}...`);
   app.use("/user", UserRoutes);
   app.use("/customer", CustomerRoutes);
+  app.use("/shift", ShiftRoutes);
+  app.use("/shift/process", ShiftRoutes);
   app.use("/product", ProductRoutes);
   app.use("/recipe", RecipeRoutes);
   app.use("/stock/rawmaterial", RawMaterialsRoutes);

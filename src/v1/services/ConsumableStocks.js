@@ -51,13 +51,15 @@
               customer_id, customer_city, customer_county, 
               currency_id, exchange_rate, vat_rate,
               vat_witholding_rate, vat_declaration,
-              vat_witholding, price_with_vat, details
+              vat_witholding, price_with_vat, details,
+              usd_rate
           ) 
           VALUES (
               $1, $2, $3, $4, $5,
               $6, $7, $8, $9, $10, 
               $11, $12, $13, $14, $15,
-              $16, $17, $18, $19, $20
+              $16, $17, $18, $19, $20,
+              $21
           ) 
           RETURNING *`;
   
@@ -82,6 +84,7 @@
       data.vat_witholding,
       data.price_with_vat,
       data.details,
+      data.usd_rate
     ];
   
     if (client) return client.query(query, values);

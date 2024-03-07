@@ -5,12 +5,12 @@ const insert = (data) => {
      VALUES($1, $2, $3, $4, $5, $6, $7, $8) 
      RETURNING *`,
     [
-      parseInt(data.order_id),
+      data.order_id,
       data.details,
-      parseFloat(data.cost),
+      data.cost,
       data.recipe_id.toString(),
-      parseInt(data.total_bunker),
-      parseInt(data.wastage_percentage),
+      data.total_bunker,
+      data.wastage_percentage,
       data.unit_bunker_cost,
       data.total_bunker_cost,
     ]
@@ -57,9 +57,9 @@ const update = ({
      RETURNING *`,
     [
       details,
-      parseFloat(cost),
-      parseInt(total_bunker),
-      parseInt(wastage_percentage),
+      cost,
+      total_bunker,
+      wastage_percentage,
       unit_bunker_cost,
       total_bunker_cost,
       id,
