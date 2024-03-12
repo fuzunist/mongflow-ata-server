@@ -31,6 +31,8 @@ const getStocks = (req, res) => {
  }
 };
 
+
+
 const putStock = async (req, res) => {
   try {
     if (!req.body) {

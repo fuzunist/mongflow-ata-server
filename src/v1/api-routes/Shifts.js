@@ -12,12 +12,22 @@ const {
   createForProcess,
   putForProcess,
   removeForProcess,
+  createShift,
+  getDayShiftsForOrder,
+  getDayShiftsForProcess,
 } = require("../controllers/Shifts");
 
 const express = require("express");
 const router = express.Router();
 
+
+router.route("/add").post(authenticate, createShift);
+router.route("/ordershifts").get(authenticate, getDayShiftsForOrder);
+router.route("/processshifts").get(authenticate, getDayShiftsForProcess);
+
 //shift for order routes
+
+
 
 router.route("/").get(authenticate, get);
 router

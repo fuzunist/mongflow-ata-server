@@ -212,6 +212,20 @@ const updateStock = (data, client) => {
   return process.pool.query(query, values);
 };
 
+const reduceStock = (data, client) => {
+  const query = `
+  UPDATE rawmaterialstocks 
+  SET quantity = quantity - $2
+  WHERE 
+      product_id = $1
+  RETURNING *`;
+
+  const values = [data.product_id, data.quantity];
+
+  if (client) return client.query(query, values);
+  return process.pool.query(query, values);
+};
+
 const delLog = (id, client) => {
   const query = `DELETE FROM rawmateriallogs WHERE id = $1`;
   const values = [id];
@@ -276,5 +290,6 @@ module.exports = {
   delLog,
   delStock,
   getLog,
-  undoStockUpdate
+  undoStockUpdate,
+  reduceStock
 };
